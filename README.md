@@ -20,33 +20,25 @@ To write a PYTHON program for socket for HTTP for web page upload and download
 ```
 import socket
 
-def send_request(host, port, request):
+def download_file(host, port, filename):
+    req = f"GET /{filename} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
+    
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
-        s.sendall(request.encode())
+        s.sendall(req.encode())
         response = b""
-        while True:
-            data = s.recv(4096)
-            if not data:
-                break
+        while (data := s.recv(4096)):
             response += data
-    return response
 
-def download_file(host, port, filename):
-    request = f"GET /{filename} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
-    response = send_request(host, port, request)
-
-    headers, _, body = response.partition(b"\r\n\r\n")
-    with open("downloaded_" + filename, "wb") as f:
+    body = response.split(b"\r\n\r\n", 1)[1]
+    out = f"downloaded_{filename}"
+    with open(out, "wb") as f:
         f.write(body)
-    print(f"✅ File '{filename}' downloaded successfully as 'downloaded_{filename}'")
+
+    print(f"Downloaded as {out}")
 
 if __name__ == "__main__":
-    host = "127.0.0.1" 
-    port = 8080
-    filename = "example.txt"
-
-    download_file(host, port, filename)
+    download_file("127.0.0.1", 8080, "example.txt")
 
 ```
 ## OUTPUT
